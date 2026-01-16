@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@theme {
+    --font-sans: 'Inter', 'Figtree', sans-serif;
+}
+
+:root {
+    /* LIGHT MODE */
+    --bg-body: #F9FAFB;      /* Cool Gray 50 */
+    --bg-card: #FFFFFF;
+    --border-color: #E5E7EB; /* Gray 200 */
+    
+    --text-main: #111827;    /* Gray 900 */
+    --text-body: #4B5563;    /* Gray 600 */
+    --text-muted: #9CA3AF;
+    
+    --brand-primary: #2563EB; /* Royal Blue */
+    --brand-glow: rgba(37, 99, 235, 0.15);
+}
+
+.dark {
+    /* DARK MODE */
+    --bg-body: #09090B;      /* Zinc 950 */
+    --bg-card: #18181B;      /* Zinc 900 */
+    --border-color: #27272A; /* Zinc 800 */
+    
+    --text-main: #FAFAFA;
+    --text-body: #A1A1AA;
+    --text-muted: #52525B;
+    
+    --brand-primary: #6366F1; /* Indigo 500 */
+    --brand-glow: rgba(99, 102, 241, 0.2);
+}
+
+@layer components {
+    .horizon-shell {
+        @apply min-h-screen bg-[var(--bg-body)] text-[var(--text-body)] font-sans antialiased selection:bg-[var(--brand-primary)] selection:text-white transition-colors duration-300;
+    }
+
+    /* === HORIZONTAL NAV === */
+    .h-nav-container {
+        @apply sticky top-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border-color)] shadow-sm;
+    }
+
+    .h-nav-wrapper {
+        @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    }
+
+    /* Top Row (Logo + Actions) */
+    .h-top-bar {
+        @apply h-16 flex items-center justify-between border-b border-[var(--border-color)];
+    }
+
+    /* Bottom Row (Links) - FIXED SCROLLBAR */
+    .h-bottom-bar {
+        @apply h-12 flex items-center gap-6 overflow-x-auto;
+        /* Standard CSS to hide scrollbars */
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+    }
+    
+    /* Chrome/Safari Scrollbar Hide */
+    .h-bottom-bar::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Navigation Links */
+    .h-link {
+        @apply text-sm font-medium text-[var(--text-body)] transition-colors hover:text-[var(--text-main)] whitespace-nowrap flex items-center gap-2 px-1;
+    }
+
+    .h-link-active {
+        @apply text-[var(--brand-primary)] font-bold relative;
+    }
+
+    /* Active Indicator Line */
+    .h-link-active::after {
+        content: '';
+        @apply absolute -bottom-[13px] left-0 right-0 h-[2px] bg-[var(--brand-primary)];
+    }
+
+    /* === UI ELEMENTS === */
+    .ui-card {
+        @apply bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6 shadow-sm;
+    }
+
+    .ui-btn {
+        @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-95;
+    }
+
+    .ui-btn-primary {
+        @apply bg-[var(--brand-primary)] text-white hover:brightness-110 shadow-[0_0_15px_var(--brand-glow)];
+    }
+
+    .theme-toggle {
+        @apply p-2 rounded-full text-[var(--text-body)] hover:bg-[var(--bg-body)] hover:text-[var(--text-main)] cursor-pointer transition-colors;
+    }
+}
