@@ -1,98 +1,90 @@
 @import "tailwindcss";
 
 @theme {
-    --font-sans: 'Inter', 'Figtree', sans-serif;
+    --font-sans: 'Figtree', 'Inter', sans-serif;
+    
+    /* ANIMATIONS */
+    --animate-float: float 8s ease-in-out infinite;
+    --animate-slide-up: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    --animate-reveal: reveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+    @keyframes slideUp {
+        from { transform: translateY(40px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes reveal {
+        from { clip-path: inset(0 100% 0 0); }
+        to { clip-path: inset(0 0 0 0); }
+    }
 }
 
 :root {
-    /* LIGHT MODE */
-    --bg-body: #F9FAFB;      /* Cool Gray 50 */
+    /* === LIGHT MODE: CONCRETE & ORANGE === */
+    --bg-body: #F2F4F7;      /* A cool, concrete grey */
     --bg-card: #FFFFFF;
-    --border-color: #E5E7EB; /* Gray 200 */
+    --bg-surface: #F9FAFB;
     
-    --text-main: #111827;    /* Gray 900 */
-    --text-body: #4B5563;    /* Gray 600 */
-    --text-muted: #9CA3AF;
+    --border-color: #E4E7EC; /* Crisp borders */
     
-    --brand-primary: #2563EB; /* Royal Blue */
-    --brand-glow: rgba(37, 99, 235, 0.15);
+    --text-main: #101828;    /* Deep sharp navy-black */
+    --text-body: #475467;    /* Slate grey text */
+    --text-muted: #98A2B3;
+    
+    /* THE POWER COLOR */
+    --brand-primary: #FF4500; /* INTERNATIONAL ORANGE */
+    --brand-hover: #CC3700;
+    --brand-glow: rgba(255, 69, 0, 0.15);
+    
+    /* UTILITY */
+    --accent-teal: #0E7490;
+    --accent-zinc: #18181B;
 }
 
 .dark {
-    /* DARK MODE */
-    --bg-body: #09090B;      /* Zinc 950 */
-    --bg-card: #18181B;      /* Zinc 900 */
-    --border-color: #27272A; /* Zinc 800 */
+    /* === DARK MODE: OILED STEEL & AMBER === */
+    --bg-body: #09090B;      /* True Zinc Black */
+    --bg-card: #121214;      /* Slightly lighter panel */
+    --bg-surface: #18181B;
     
-    --text-main: #FAFAFA;
-    --text-body: #A1A1AA;
+    --border-color: #27272A; /* Subtle metallic edge */
+    
+    --text-main: #FAFAFA;    /* Pure white */
+    --text-body: #A1A1AA;    /* Silver text */
     --text-muted: #52525B;
     
-    --brand-primary: #6366F1; /* Indigo 500 */
-    --brand-glow: rgba(99, 102, 241, 0.2);
+    --brand-primary: #FF5714; /* Slightly brighter orange for dark mode */
+    --brand-hover: #FF7034;
+    --brand-glow: rgba(255, 87, 20, 0.2);
 }
 
 @layer components {
     .horizon-shell {
-        @apply min-h-screen bg-[var(--bg-body)] text-[var(--text-body)] font-sans antialiased selection:bg-[var(--brand-primary)] selection:text-white transition-colors duration-300;
+        @apply min-h-screen bg-[var(--bg-body)] text-[var(--text-body)] font-sans antialiased selection:bg-[var(--brand-primary)] selection:text-white transition-colors duration-500;
     }
 
-    /* === HORIZONTAL NAV === */
-    .h-nav-container {
-        @apply sticky top-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border-color)] shadow-sm;
-    }
-
-    .h-nav-wrapper {
-        @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-    }
-
-    /* Top Row (Logo + Actions) */
-    .h-top-bar {
-        @apply h-16 flex items-center justify-between border-b border-[var(--border-color)];
-    }
-
-    /* Bottom Row (Links) - FIXED SCROLLBAR */
-    .h-bottom-bar {
-        @apply h-12 flex items-center gap-6 overflow-x-auto;
-        /* Standard CSS to hide scrollbars */
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE/Edge */
+    /* === TYPOGRAPHY UTILS === */
+    .heading-xl {
+        @apply text-5xl md:text-7xl font-extrabold tracking-tight text-[var(--text-main)] leading-[1.1];
     }
     
-    /* Chrome/Safari Scrollbar Hide */
-    .h-bottom-bar::-webkit-scrollbar {
-        display: none;
-    }
-
-    /* Navigation Links */
-    .h-link {
-        @apply text-sm font-medium text-[var(--text-body)] transition-colors hover:text-[var(--text-main)] whitespace-nowrap flex items-center gap-2 px-1;
-    }
-
-    .h-link-active {
-        @apply text-[var(--brand-primary)] font-bold relative;
-    }
-
-    /* Active Indicator Line */
-    .h-link-active::after {
-        content: '';
-        @apply absolute -bottom-[13px] left-0 right-0 h-[2px] bg-[var(--brand-primary)];
+    .heading-lg {
+        @apply text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-main)];
     }
 
     /* === UI ELEMENTS === */
-    .ui-card {
-        @apply bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6 shadow-sm;
+    .glass-panel {
+        @apply bg-[var(--bg-card)]/80 backdrop-blur-xl border border-[var(--border-color)] shadow-xl;
     }
 
-    .ui-btn {
-        @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-95;
+    .btn-primary {
+        @apply px-6 py-3 bg-[var(--brand-primary)] text-white font-semibold rounded-lg shadow-[0_0_20px_var(--brand-glow)] hover:bg-[var(--brand-hover)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300;
     }
 
-    .ui-btn-primary {
-        @apply bg-[var(--brand-primary)] text-white hover:brightness-110 shadow-[0_0_15px_var(--brand-glow)];
-    }
-
-    .theme-toggle {
-        @apply p-2 rounded-full text-[var(--text-body)] hover:bg-[var(--bg-body)] hover:text-[var(--text-main)] cursor-pointer transition-colors;
+    .btn-secondary {
+        @apply px-6 py-3 bg-white dark:bg-zinc-800 border border-[var(--border-color)] text-[var(--text-main)] font-semibold rounded-lg hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] transition-colors duration-300;
     }
 }
