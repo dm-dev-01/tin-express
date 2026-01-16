@@ -1,67 +1,75 @@
 <template>
-  <div class="h-[calc(100vh-8rem)] flex flex-col gap-6" v-if="ticket">
+  <div class="h-[calc(100vh-8rem)] flex flex-col bg-[var(--bg-card)] rounded-xl border border-[var(--border-color)] overflow-hidden" v-if="ticket">
     
-    <div class="flex justify-between items-start bg-[var(--bg-card)] p-6 rounded-xl border border-[var(--border-color)]">
+    <div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center bg-[var(--bg-surface)]">
         <div>
-            <div class="flex items-center gap-3 mb-2">
-                <router-link :to="backLink" class="text-[var(--text-muted)] hover:text-[var(--text-main)]">
-                    ← Back
-                </router-link>
-                <span class="px-2 py-1 rounded text-xs font-bold uppercase bg-slate-100 text-slate-700">
-                    {{ ticket.category }}
-                </span>
+            <div class="flex items-center gap-3">
+                <button @click="$router.back()" class="text-[var(--text-muted)] hover:text-[var(--text-main)]">← Back</button>
+                <h1 class="font-bold text-[var(--text-main)]">#{{ ticket.id }}: {{ ticket.subject }}</h1>
+                <span :class="statusClass(ticket.status)" class="px-2 py-0.5 rounded text-[10px] uppercase font-bold">{{ ticket.status }}</span>
             </div>
-            <h1 class="text-2xl font-bold text-[var(--text-main)]">{{ ticket.subject }}</h1>
+            <div class="text-xs text-[var(--text-muted)] mt-1 pl-12" v-if="ticket.shipment">
+                Ref: Shipment #{{ ticket.shipment.id }} • {{ ticket.shipment.sender_suburb }} → {{ ticket.shipment.receiver_suburb }}
+            </div>
         </div>
-        <div class="text-right flex flex-col items-end gap-2">
-            <span :class="statusClass(ticket.status)" class="px-3 py-1 rounded text-sm font-bold uppercase tracking-wide">
-                {{ ticket.status }}
-            </span>
-            
-            <button 
-                v-if="ticket.status !== 'closed'" 
-                @click="closeTicket" 
-                :disabled="processing"
-                class="text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors"
-            >
-                {{ processing ? '...' : 'Mark as Resolved' }}
-            </button>
+
+        <div v-if="authStore.isSuperAdmin" class="flex items-center gap-2">
+            <span class="text-xs font-bold text-[var(--text-muted)] uppercase">Status:</span>
+            <select @change="updateStatus($event)" :value="ticket.status" class="px-3 py-1 rounded bg-[var(--bg-body)] border border-[var(--border-color)] text-xs font-bold focus:border-[var(--brand-primary)] outline-none">
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+                <option value="closed">Closed</option>
+            </select>
         </div>
     </div>
 
-    <div class="flex-1 bg-[var(--bg-card)] rounded-xl border border-[var(--border-color)] overflow-hidden flex flex-col">
-        <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-[var(--bg-body)]" ref="chatContainer">
-            <div v-for="msg in ticket.messages" :key="msg.id" class="flex" :class="isMyMessage(msg) ? 'justify-end' : 'justify-start'">
-                <div class="max-w-[70%]" :class="isMyMessage(msg) ? 'order-1' : 'order-2'">
-                    <div class="text-xs text-[var(--text-muted)] mb-1" :class="isMyMessage(msg) ? 'text-right' : 'text-left'">
-                        <span class="font-bold">{{ msg.user.first_name }}</span> • {{ new Date(msg.created_at).toLocaleString() }}
+    <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-[var(--bg-body)]" ref="messagesContainer">
+        <div v-for="msg in ticket.messages" :key="msg.id" class="flex gap-4" :class="{ 'flex-row-reverse': isMe(msg.user_id) }">
+            
+            <div class="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                :class="isMe(msg.user_id) ? 'bg-[var(--brand-primary)] text-white' : 'bg-slate-200 text-slate-600'">
+                {{ msg.user.first_name[0] }}
+            </div>
+
+            <div class="max-w-[80%]">
+                <div class="p-4 rounded-2xl shadow-sm text-sm"
+                    :class="isMe(msg.user_id) ? 'bg-[var(--brand-primary)] text-white rounded-tr-none' : 'bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] rounded-tl-none'">
+                    
+                    <p class="whitespace-pre-wrap">{{ msg.message }}</p>
+
+                    <div v-if="msg.attachment_path" class="mt-3 pt-3 border-t border-white/20">
+                        <a :href="msg.attachment_url" target="_blank" class="flex items-center gap-2 hover:underline opacity-90">
+                            📎 {{ msg.attachment_name }}
+                        </a>
                     </div>
-                    <div class="p-4 rounded-xl shadow-sm text-sm whitespace-pre-wrap"
-                        :class="isMyMessage(msg) 
-                            ? 'bg-[var(--brand-primary)] text-white rounded-tr-none' 
-                            : 'bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] rounded-tl-none'">
-                        {{ msg.message }}
-                    </div>
+                </div>
+                <div class="text-[10px] text-[var(--text-muted)] mt-1 px-1" :class="{ 'text-right': isMe(msg.user_id) }">
+                    {{ new Date(msg.created_at).toLocaleString() }} • {{ msg.user.first_name }}
                 </div>
             </div>
         </div>
+    </div>
 
-        <div v-if="ticket.status !== 'closed'" class="p-4 bg-[var(--bg-card)] border-t border-[var(--border-color)]">
-            <form @submit.prevent="sendReply" class="flex gap-4">
-                <textarea 
-                    v-model="replyMessage" 
-                    placeholder="Type your reply..." 
-                    class="flex-1 p-3 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-color)] focus:border-[var(--brand-primary)] outline-none resize-none"
-                    rows="2"
-                    @keydown.enter.exact.prevent="sendReply"
-                ></textarea>
-                <button type="submit" class="btn-primary self-end" :disabled="processing">
-                    Send
-                </button>
-            </form>
+    <div class="p-4 bg-[var(--bg-card)] border-t border-[var(--border-color)]">
+        <div v-if="ticket.status === 'closed'" class="text-center text-[var(--text-muted)] text-sm py-2">
+            This ticket is closed. Re-open it to reply.
         </div>
-        <div v-else class="p-4 text-center text-[var(--text-muted)] text-sm bg-[var(--bg-surface)] border-t border-[var(--border-color)]">
-            This ticket is closed. Reply to reopen it.
+        <form v-else @submit.prevent="sendReply" class="flex gap-4 items-end">
+            <div class="flex-1 relative">
+                <textarea v-model="replyText" rows="2" placeholder="Type a reply..." class="w-full px-4 py-2 rounded bg-[var(--bg-surface)] border border-[var(--border-color)] pr-10 resize-none focus:border-[var(--brand-primary)] outline-none" @keydown.enter.exact.prevent="sendReply"></textarea>
+                <label class="absolute right-3 bottom-3 cursor-pointer text-[var(--text-muted)] hover:text-[var(--brand-primary)]">
+                    <input type="file" class="hidden" @change="handleFile">
+                    📎
+                </label>
+            </div>
+            <button class="btn-primary h-10 px-6 flex items-center gap-2" :disabled="sending">
+                <span v-if="sending">...</span>
+                <span v-else>Send</span>
+            </button>
+        </form>
+        <div v-if="file" class="mt-2 text-xs text-[var(--brand-primary)] flex items-center gap-2">
+            File: {{ file.name }} <button @click="file = null" class="text-red-500 font-bold ml-1">×</button>
         </div>
     </div>
 
@@ -69,73 +77,80 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
-import { useAuthStore } from '../../stores/auth';
 import axios from 'axios';
+import { useAuthStore } from '../../stores/auth';
 
 const route = useRoute();
 const authStore = useAuthStore();
 const ticket = ref(null);
-const replyMessage = ref('');
-const processing = ref(false);
-const chatContainer = ref(null);
+const replyText = ref('');
+const file = ref(null);
+const sending = ref(false);
+const messagesContainer = ref(null);
 
-const backLink = computed(() => authStore.isSuperAdmin ? '/admin/support' : '/dashboard/support');
-
-const isMyMessage = (msg) => msg.user_id === authStore.user.id;
+const isMe = (userId) => userId === authStore.user?.id;
 
 const fetchTicket = async () => {
+    if (!authStore.isLoaded) await authStore.fetchUser();
+    
     try {
-        const response = await axios.get(`/api/v1/support/${route.params.id}`);
-        ticket.value = response.data;
+        const res = await axios.get(`/api/v1/support/${route.params.id}`);
+        ticket.value = res.data;
         scrollToBottom();
-    } catch (error) {
-        console.error("Error fetching ticket", error);
+    } catch (e) {
+        console.error("Error fetching ticket", e);
     }
 };
+
+const scrollToBottom = async () => {
+    await nextTick();
+    if(messagesContainer.value) messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+};
+
+const handleFile = (e) => { file.value = e.target.files[0]; };
 
 const sendReply = async () => {
-    if (!replyMessage.value.trim()) return;
-    processing.value = true;
+    if(!replyText.value.trim() && !file.value) return;
+    sending.value = true;
+    
+    const data = new FormData();
+    data.append('message', replyText.value);
+    if(file.value) data.append('file', file.value);
+
     try {
-        await axios.post(`/api/v1/support/${route.params.id}/reply`, { message: replyMessage.value });
-        await fetchTicket();
-        replyMessage.value = '';
+        await axios.post(`/api/v1/support/${route.params.id}/reply`, data);
+        replyText.value = '';
+        file.value = null;
+        fetchTicket(); 
+    } catch(e) { alert("Failed to send."); }
+    finally { sending.value = false; }
+};
+
+// === THE FIX FOR STATUS UPDATE ===
+const updateStatus = async (e) => {
+    const newStatus = e.target.value;
+    try {
+        // This matches the new route we added
+        await axios.post(`/api/v1/support/${route.params.id}/status`, { status: newStatus });
+        ticket.value.status = newStatus; // Update UI immediately
+        // Optional: Show toast success
     } catch (error) {
-        alert("Failed to send reply");
-    } finally {
-        processing.value = false;
+        alert("Failed to update status");
+        fetchTicket(); // Revert UI if failed
     }
-};
-
-const closeTicket = async () => {
-    if(!confirm("Are you sure you want to mark this ticket as resolved?")) return;
-    processing.value = true;
-    try {
-        await axios.put(`/api/v1/support/${route.params.id}`, { status: 'closed' });
-        await fetchTicket();
-    } catch (e) {
-        alert("Failed to close ticket");
-    } finally {
-        processing.value = false;
-    }
-};
-
-const scrollToBottom = () => {
-    nextTick(() => {
-        if (chatContainer.value) {
-            chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
-        }
-    });
 };
 
 const statusClass = (status) => {
-    return status === 'closed' ? 'bg-slate-100 text-slate-500' : 
-           status === 'answered' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800';
+    const map = {
+        'open': 'bg-slate-100 text-slate-600',
+        'in_progress': 'bg-blue-100 text-blue-600',
+        'resolved': 'bg-green-100 text-green-600',
+        'closed': 'bg-gray-200 text-gray-500'
+    };
+    return map[status] || 'bg-slate-100';
 };
 
-onMounted(() => {
-    fetchTicket();
-});
+onMounted(fetchTicket);
 </script>

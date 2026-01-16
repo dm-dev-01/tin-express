@@ -33,5 +33,11 @@ export const adminMenu = [
             { name: "Users", path: "/admin/users", icon: "👤" },
             { name: "Promotions", path: "/admin/promotions", icon: "🏷️" },
         ]
+    },
+    {
+        category: "Support",
+        items: [
+            { name: "Support Center", path: "/admin/support", icon: "🚑" },
+        ]
     }
 ];

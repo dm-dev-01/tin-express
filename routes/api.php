@@ -67,6 +67,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/support', 'store');
             Route::get('/support/{id}', 'show');
             Route::post('/support/{id}/reply', 'reply');
+            Route::post('/support/{id}/status', 'updateStatus');
         });
         Route::controller(NotificationController::class)->group(function () {
             Route::get('/notifications', 'index');

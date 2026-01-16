@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Notifications\SupportTicketUpdated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Notification;
 
 class SupportController extends Controller
@@ -65,7 +64,6 @@ class SupportController extends Controller
     // --- SHOW TICKET ---
     public function show($id)
     {
-        // ... (Keep existing show method) ...
         $user = Auth::user();
         $ticket = SupportTicket::with(['messages.user', 'shipment'])->findOrFail($id);
 
@@ -132,7 +130,6 @@ class SupportController extends Controller
 
     // --- STATUS UPDATE (Keep existing) ---
     public function updateStatus(Request $request, $id) {
-        // ... existing code ...
         if (Auth::user()->role !== 'super_admin') return response()->json(['message' => 'Unauthorized'], 403);
         $ticket = SupportTicket::findOrFail($id);
         $ticket->update(['status' => $request->status]);
