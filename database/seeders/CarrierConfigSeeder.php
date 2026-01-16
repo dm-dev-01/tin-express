@@ -48,11 +48,17 @@ class CarrierConfigSeeder extends Seeder
         // 4. TNT
         CarrierConfig::create([
             'carrier_code' => 'tnt',
-            'account_code' => 'TNT_USER',
-            'api_key'      => 'TNT_PASS',
-            'api_secret'   => 'TNT_ACC_NUM',
-            'environment'  => 'test',
-            'is_active'    => false,
+            'account_code' => '30023444',           // Account
+            'api_key'      => 'CIT00000000000134352', // Username (Stored as key)
+            'api_secret'   => 'T6MitbTCXw',           // Password (Stored as secret)
+            'environment'  => 'test',                 // Enforced Test Mode
+            'is_active'    => true,
+            'extra_settings' => [
+                'sender_code' => 'TINEX',
+                'prefix' => 'TIX',
+                'tracking_user' => 'TINEXuser',
+                'tracking_password' => 'NE6iStaM'
+            ],
         ]);
     }
 }

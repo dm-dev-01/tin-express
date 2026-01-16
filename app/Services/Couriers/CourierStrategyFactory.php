@@ -60,11 +60,17 @@ class CourierStrategyFactory
             ),
 
             'tnt' => new TNTStrategy(
-                (string) $config->account_code, // Username
-                (string) $config->api_key,      // Password
-                (string) $config->api_secret    // Account Number (stored in secret field for flexibility)
+                // 1. Username (stored in api_key)
+                (string) $config->api_key,    
+                // 2. Password (stored in api_secret)
+                (string) $config->api_secret, 
+                // 3. Account Number (stored in account_code)
+                (string) $config->account_code, 
+                // 4. Test Mode Flag (Force UAT if not production)
+                $config->environment !== 'production', 
+                // 5. Extra Settings
+                (array) ($config->extra_settings ?? [])
             ),
-
             default => null,
         };
     }
